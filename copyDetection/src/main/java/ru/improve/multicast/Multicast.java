@@ -1,6 +1,6 @@
 package ru.improve.multicast;
 
-public class Multicast {
+public abstract class Multicast implements Runnable {
 
 
 }

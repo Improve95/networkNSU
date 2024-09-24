@@ -1,17 +1,22 @@
 package ru.improve.util;
 
-import org.apache.commons.cli.Option;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class OptionParser {
 
     private Options options;
 
     public OptionParser() {
-        options.addOption();
+        options.addOption("i", "ip", true, "ip address");
+        options.addOption("p", "post", true, "multicast port");
     }
 
-    public void parse(String[] args) {
-
+    public CommandLine parse(String[] args) throws ParseException {
+        CommandLine cmd;
+        cmd = new DefaultParser().parse(options, args);
+        return cmd;
     }
 }
