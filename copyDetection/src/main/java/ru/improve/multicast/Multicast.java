@@ -1,6 +1,8 @@
 package ru.improve.multicast;
 
-public abstract class Multicast implements Runnable {
+public interface Multicast extends Runnable {
 
+    void initial(String groupIdAddress, int port, String key);
 
+    void stop();
 }

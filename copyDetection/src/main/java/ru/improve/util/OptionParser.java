@@ -7,11 +7,12 @@ import org.apache.commons.cli.ParseException;
 
 public class OptionParser {
 
-    private Options options;
+    private Options options = new Options();
 
     public OptionParser() {
-        options.addOption("i", "ip", true, "ip address");
-        options.addOption("p", "post", true, "multicast port");
+        options.addOption("i", "ip", true, "group ip address");
+        options.addOption("p", "post", true, "port");
+        options.addOption("k", "key", true, "sender key");
     }
 
     public CommandLine parse(String[] args) throws ParseException {
