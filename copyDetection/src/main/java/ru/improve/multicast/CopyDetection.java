@@ -12,11 +12,11 @@ public class CopyDetection {
         receiver = new Receiver(groupIp, port, key);
         sender = new Sender(groupIp, port, key);
 
-        receiverThread = new Thread(() -> receiver.run());
-        senderThread = new Thread(() -> sender.run());
+        receiverThread = new Thread(receiver);
+        senderThread = new Thread(sender);
 
         receiverThread.start();
-        receiverThread.start();
+        senderThread.start();
     }
 
     public void stop() {

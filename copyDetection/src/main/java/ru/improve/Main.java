@@ -41,6 +41,6 @@ public class Main {
         do {
             line = scanner.next();
             copyDetection.stop();
-        } while (!line.equals("break"));
+        } while (!line.equals("q"));
     }
 }

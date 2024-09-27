@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Receiver implements Multicast {
 
     private final static int BUFFER_SIZE = 256;
-    private final static int TIMER_TIMEOUT = 5000;
+    private final static int TIMER_TIMEOUT = 2000;
     private final static int COPY_TIMEOUT = 10 * 1000;
 
     private String ipGroup;
@@ -26,6 +27,8 @@ public class Receiver implements Multicast {
 
     Timer timer;
     Map<ReceiveData, Long> copyList = new ConcurrentHashMap<>();
+
+    MulticastSocket multicastSocket;
 
     private boolean continueReceive = true;
 
@@ -45,15 +48,19 @@ public class Receiver implements Multicast {
     }
 
     public void stop() {
+        if (timer != null) {
+            timer.cancel();
+        }
         continueReceive = false;
-        timer.cancel();
+        multicastSocket.close();
     }
 
     private void receiveDatagrams() {
-        try (MulticastSocket multicastSocket = new MulticastSocket(port)) {
+        try {
             byte[] buf = new byte[BUFFER_SIZE];
 
             SocketAddress socketAddress = new InetSocketAddress(ipGroup, port);
+            multicastSocket = new MulticastSocket(port);
             multicastSocket.joinGroup(socketAddress, null);
 
             while (continueReceive) {
@@ -68,6 +75,8 @@ public class Receiver implements Multicast {
                     copyList.put(receiveData, System.currentTimeMillis());
                 }
             }
+        } catch (SocketException ex) {
+
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage());
         }
@@ -76,9 +85,7 @@ public class Receiver implements Multicast {
     private class CheckCopyTimeoutTask extends TimerTask {
         @Override
         public void run() {
-            System.out.println("timer");
             for (var entry : copyList.entrySet()) {
-                System.out.println(System.currentTimeMillis() - entry.getValue());
                 if (System.currentTimeMillis() - entry.getValue() > COPY_TIMEOUT) {
                     copyList.remove(entry.getKey());
                 }
@@ -86,8 +93,9 @@ public class Receiver implements Multicast {
 
             for (var entry : copyList.entrySet()) {
                 ReceiveData receiveData = entry.getKey();
-                System.out.println(String.format("%s %d %ld", receiveData.getInetAddress(), receiveData.getPort(), entry.getValue()));
+                System.out.println(String.format("%s %d", receiveData.getInetAddress(), receiveData.getPort()));
             }
+            System.out.println();
         }
     }
 

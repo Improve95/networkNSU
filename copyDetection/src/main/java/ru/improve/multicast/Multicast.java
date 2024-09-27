@@ -1,8 +1,6 @@
 package ru.improve.multicast;
 
-public interface Multicast {
-
-    void run();
+public interface Multicast extends Runnable {
 
     void stop();
 }

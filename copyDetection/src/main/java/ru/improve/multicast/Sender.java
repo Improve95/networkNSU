@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -16,6 +17,8 @@ public class Sender implements Multicast {
     private String ipGroup;
     private int port;
     private String key;
+
+    private DatagramSocket datagramSocket;
 
     public Sender(String ipGroup, int port, String key) {
         this.ipGroup = ipGroup;
@@ -33,17 +36,22 @@ public class Sender implements Multicast {
     }
 
     public void stop() {
-        timer.cancel();
+        datagramSocket.close();
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     private void sendDatagrams() throws IOException {
-        try(DatagramSocket datagramSocket = new DatagramSocket()) {
+        try {
+            datagramSocket = new DatagramSocket();
             InetAddress inetAddress = InetAddress.getByName(ipGroup);
             byte[] buf = key.getBytes(StandardCharsets.UTF_8);
 
             timer = new Timer();
-            SendDatagramTask sendDatagramTask = new SendDatagramTask(datagramSocket, inetAddress, buf);
-            timer.schedule(sendDatagramTask, 0, TIMER_DELAY);
+            SendDatagramTask sendDatagramTask = new SendDatagramTask(inetAddress, buf);
+            timer.scheduleAtFixedRate(sendDatagramTask, 0, TIMER_DELAY);
+        } catch (SocketException ex) {
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage());
         }
@@ -51,13 +59,10 @@ public class Sender implements Multicast {
 
     private class SendDatagramTask extends TimerTask {
 
-        private DatagramSocket datagramSocket;
-
         private InetAddress ipGroup;
         private byte[] buf;
 
-        public SendDatagramTask(DatagramSocket datagramSocket, InetAddress ipGroup, byte[] buf) {
-            this.datagramSocket = datagramSocket;
+        public SendDatagramTask(InetAddress ipGroup, byte[] buf) {
             this.ipGroup = ipGroup;
             this.buf = buf;
         }
