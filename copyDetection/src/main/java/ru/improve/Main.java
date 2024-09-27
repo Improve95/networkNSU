@@ -28,12 +28,13 @@ public class Main {
             throw new RuntimeException("bad port");
         }
 
-        if (cmd.getOptionValue("k").isEmpty()) {
+        String key;
+        if ((key = cmd.getOptionValue("k")).isEmpty()) {
             throw new RuntimeException("empry send key");
         }
 
         CopyDetection copyDetection = new CopyDetection();
-        copyDetection.start(groupIpAddress, port);
+        copyDetection.start(groupIpAddress, port, key);
 
         String line;
         Scanner scanner = new Scanner(System.in);

@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Sender implements Multicast {
+
+    private final static int timerDelay = 2000;
 
     private String groupIdAddress;
     private int port;
@@ -41,9 +45,29 @@ public class Sender implements Multicast {
         datagramSocket = new DatagramSocket();
         byte[] buf = key.getBytes();
 
-        while (continueSend) {
-            DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length, ipGroup, port);
-            datagramSocket.send(datagramPacket);
+        Timer timer = new Timer();
+        timer.schedule(new MyTask(ipGroup, buf), 0, timerDelay);
+    }
+
+    class MyTask extends TimerTask {
+
+        private InetAddress ipGroup;
+
+        private byte[] buf;
+
+        public MyTask(InetAddress ipGroup, byte[] buf) {
+            this.ipGroup = ipGroup;
+            this.buf = buf;
+        }
+
+        @Override
+        public void run() {
+            try {
+                DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length, ipGroup, port);
+                datagramSocket.send(datagramPacket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }
