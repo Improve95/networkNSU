@@ -30,7 +30,7 @@ public class Main {
 
         String key;
         if ((key = cmd.getOptionValue("k")).isEmpty()) {
-            throw new RuntimeException("empry send key");
+            throw new RuntimeException("empty send key");
         }
 
         CopyDetection copyDetection = new CopyDetection();

@@ -14,6 +14,9 @@ public class CopyDetection {
 
         receiverThread = new Thread(() -> receiver.run());
         senderThread = new Thread(() -> sender.run());
+
+        receiverThread.start();
+        receiverThread.start();
     }
 
     public void stop() {

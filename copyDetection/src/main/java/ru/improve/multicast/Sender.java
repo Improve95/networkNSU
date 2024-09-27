@@ -4,22 +4,21 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Sender implements Multicast {
 
-    private final static int timerDelay = 2000;
+    private final static int TIMER_DELAY = 1000;
     private Timer timer;
 
-    private String groupIdAddress;
+    private String ipGroup;
     private int port;
     private String key;
 
-    private DatagramSocket datagramSocket;
-
-    public Sender(String groupIdAddress, int port, String key) {
-        this.groupIdAddress = groupIdAddress;
+    public Sender(String ipGroup, int port, String key) {
+        this.ipGroup = ipGroup;
         this.port = port;
         this.key = key;
     }
@@ -35,24 +34,30 @@ public class Sender implements Multicast {
 
     public void stop() {
         timer.cancel();
-        datagramSocket.close();
     }
 
     private void sendDatagrams() throws IOException {
-        InetAddress ipGroup = InetAddress.getByName(groupIdAddress);
-        datagramSocket = new DatagramSocket();
-        byte[] buf = key.getBytes();
+        try(DatagramSocket datagramSocket = new DatagramSocket()) {
+            InetAddress inetAddress = InetAddress.getByName(ipGroup);
+            byte[] buf = key.getBytes(StandardCharsets.UTF_8);
 
-        timer = new Timer();
-        timer.schedule(new MyTask(ipGroup, buf), 0, timerDelay);
+            timer = new Timer();
+            SendDatagramTask sendDatagramTask = new SendDatagramTask(datagramSocket, inetAddress, buf);
+            timer.schedule(sendDatagramTask, 0, TIMER_DELAY);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex.getMessage());
+        }
     }
 
-    class MyTask extends TimerTask {
+    private class SendDatagramTask extends TimerTask {
+
+        private DatagramSocket datagramSocket;
 
         private InetAddress ipGroup;
         private byte[] buf;
 
-        public MyTask(InetAddress ipGroup, byte[] buf) {
+        public SendDatagramTask(DatagramSocket datagramSocket, InetAddress ipGroup, byte[] buf) {
+            this.datagramSocket = datagramSocket;
             this.ipGroup = ipGroup;
             this.buf = buf;
         }
