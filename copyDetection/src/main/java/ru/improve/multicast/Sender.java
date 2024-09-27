@@ -10,6 +10,7 @@ import java.util.TimerTask;
 public class Sender implements Multicast {
 
     private final static int timerDelay = 2000;
+    private Timer timer;
 
     private String groupIdAddress;
     private int port;
@@ -17,10 +18,7 @@ public class Sender implements Multicast {
 
     private DatagramSocket datagramSocket;
 
-    private boolean continueSend = true;
-
-    @Override
-    public void initial(String groupIdAddress, int port, String key) {
+    public Sender(String groupIdAddress, int port, String key) {
         this.groupIdAddress = groupIdAddress;
         this.port = port;
         this.key = key;
@@ -36,7 +34,7 @@ public class Sender implements Multicast {
     }
 
     public void stop() {
-        continueSend = false;
+        timer.cancel();
         datagramSocket.close();
     }
 
@@ -45,14 +43,13 @@ public class Sender implements Multicast {
         datagramSocket = new DatagramSocket();
         byte[] buf = key.getBytes();
 
-        Timer timer = new Timer();
+        timer = new Timer();
         timer.schedule(new MyTask(ipGroup, buf), 0, timerDelay);
     }
 
     class MyTask extends TimerTask {
 
         private InetAddress ipGroup;
-
         private byte[] buf;
 
         public MyTask(InetAddress ipGroup, byte[] buf) {
@@ -65,8 +62,8 @@ public class Sender implements Multicast {
             try {
                 DatagramPacket datagramPacket = new DatagramPacket(buf, buf.length, ipGroup, port);
                 datagramSocket.send(datagramPacket);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
         }
     }
